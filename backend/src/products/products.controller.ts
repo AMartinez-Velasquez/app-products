@@ -1,5 +1,5 @@
 // products/products.controller.ts
-import { Controller, Get, Post, Put, Body, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, Delete } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { Product } from './entities/product.entity';
 
@@ -25,7 +25,13 @@ export class ProductsController {
   @Put(':id')
   update(@Param('id') id: string, @Body() body: Partial<Product>) {
   console.log(this.productsService); // Agrega esta línea temporalmente
-  return this.productsService.update(Number(id), body);
+    return this.productsService.update(Number(id), body);
 
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    console.log('Deleting product with ID:', id);  // Debug temporal
+    return this.productsService.delete(Number(id));
   }
 }

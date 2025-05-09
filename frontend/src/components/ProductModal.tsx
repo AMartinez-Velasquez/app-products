@@ -46,6 +46,16 @@ const ProductModal: React.FC<ProductFormProps> = ({ open, onClose, refresh, prod
         }
     }, [product]);
 
+    const resetForm = () => {
+        setFormData({
+            name: '',
+            description: '',
+            price: 0,
+            stock: 0,
+        });
+    };
+    
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -63,6 +73,7 @@ const ProductModal: React.FC<ProductFormProps> = ({ open, onClose, refresh, prod
                 await axios.post('http://localhost:3000/products', formData);
             }
             refresh();
+            resetForm(); 
             onClose();
         } catch (error) {
             console.error('Error saving product:', error);

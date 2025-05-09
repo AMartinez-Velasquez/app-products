@@ -37,4 +37,12 @@ export class ProductsService {
     const updatedProduct = this.productRepo.merge(product, data);
     return this.productRepo.save(updatedProduct);
   }
+
+  async delete(id: number): Promise<void> {
+    const product = await this.productRepo.findOneBy({ id });
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+    await this.productRepo.delete(id);
+  }
 }
