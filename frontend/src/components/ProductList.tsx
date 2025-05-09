@@ -24,7 +24,24 @@ interface Product {
     updatedAt: string;
 }
 
-const ProductList: React.FC<{products: Product[]}> = ({products}) => {
+const ProductList: React.FC<{
+    products: Product[];
+    onEdit: (product: Product) => void;
+    onDelete: (id: number) => void;
+}> = ({products, onEdit, onDelete}) => {
+
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [modalOpen, setModalOpen] = useState(false);
+
+    const handleEdit = (product: Product) => {
+        setSelectedProduct(product);
+        setModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setSelectedProduct(null);
+        setModalOpen(false);
+    };
 
     return (
         <TableContainer component={Paper}>
@@ -48,16 +65,10 @@ const ProductList: React.FC<{products: Product[]}> = ({products}) => {
                             <TableCell>${product.price}</TableCell>
                             <TableCell>{product.stock}</TableCell>
                             <TableCell>
-                                <IconButton
-                                    color="primary"
-                                    onClick={() => {/* TODO: Implementar edición */}}
-                                >
+                            <IconButton color="primary" onClick={() => onEdit(product)}>
                                     <EditIcon />
                                 </IconButton>
-                                <IconButton
-                                    color="error"
-                                    onClick={() => handleDelete(product.id)}
-                                >
+                                <IconButton color="error" onClick={() => onDelete(product.id)}>
                                     <DeleteIcon />
                                 </IconButton>
                             </TableCell>

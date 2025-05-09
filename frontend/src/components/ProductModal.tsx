@@ -25,7 +25,7 @@ interface ProductFormProps {
     product?: Product | null;
 }
 
-const ProductForm: React.FC<ProductFormProps> = ({ open, onClose, refresh, product }) => {
+const ProductModal: React.FC<ProductFormProps> = ({ open, onClose, refresh, product }) => {
     const [formData, setFormData] = useState<Product>({
         name: '',
         description: '',
@@ -134,4 +134,4 @@ const ProductForm: React.FC<ProductFormProps> = ({ open, onClose, refresh, produ
     );
 };
 
-export default ProductForm; 
+export default ProductModal; 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Container, Typography, Button, Box } from '@mui/material';
 import ProductList from './components/ProductList';
-import ProductForm from './components/ProductForm';
+import ProductModal from './components/ProductModal';
 import axios from 'axios';
 
 interface Product {
@@ -20,8 +20,8 @@ function App() {
     const [refreshList, setRefreshList] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
 
-    const handleOpenForm = (product = null) => {
-        setSelectedProduct(product);
+    const handleOpenForm = (product?: Product | null) => {
+        setSelectedProduct(product || null);
         setOpenForm(true);
     };
 
@@ -70,11 +70,15 @@ function App() {
                 >
                     Agregar Producto
                 </Button>
-                <ProductList products={products}/>
-                <ProductForm
+                <ProductList
+                    products={products}
+                    onEdit={handleOpenForm}
+                    onDelete={handleDelete}
+                />
+                <ProductModal
                     open={openForm}
                     onClose={handleCloseForm}
-                    onSave={handleSave}
+                   // onSave={handleSave}
                     product={selectedProduct}
                     refresh={fetchProducts}
                 />

@@ -1,6 +1,10 @@
 {
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^7.1.0",
     "@nestjs/typeorm": "^11.0.0",
+    "axios": "^1.9.0",
     "pg": "^8.15.6",
     "typeorm": "^0.3.23"
   }
