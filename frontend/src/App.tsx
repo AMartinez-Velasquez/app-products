@@ -87,29 +87,30 @@ function App() {
     }, [refreshList]);
 
     return (
-        <Container maxWidth="lg">
-            <Box sx={{ extAlign: 'center', my: 4 }}>
+        <Container maxWidth="xl">
+            <Box sx={{ textAlign: 'center', my: 4 }}>
                 <Typography variant="h4" component="h1" gutterBottom>
                     Sistema de Inventario
                 </Typography>
-                <Box sx={{ mb: 6 }}>
-                    <Typography variant="h6">Productos</Typography>
-                        <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => handleOpenForm()}
-                        sx={{ mb: 2 }}
-                        >
-                        Agregar Producto
-                        </Button>
-                        <ProductList
-                        products={products}
-                        onEdit={handleOpenForm}
-                        onDelete={handleDelete}
-                        />
-                </Box>
+                <Grid container spacing={12}>
+                    <Grid item xs={12} md={6}>
+                        <Typography variant="h6">Productos</Typography>
+                            <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => handleOpenForm()}
+                            sx={{ mb: 2 }}
+                            >
+                            Agregar Producto
+                            </Button>
+                            <ProductList
+                            products={products}
+                            onEdit={handleOpenForm}
+                            onDelete={handleDelete}
+                            />
+                </Grid>
 
-                <Box sx={{ mb: 6 }}>
+                <Grid item xs={12} md={6}>
                     <Typography variant="h6">Almacenes</Typography>
                     <Button
                     variant="contained"
@@ -130,7 +131,8 @@ function App() {
                     }}
                     onDelete={handleDeleteWarehouse}
                     />
-                </Box>
+                </Grid>
+            </Grid>
 
                 <ProductModal
                     open={openForm}
