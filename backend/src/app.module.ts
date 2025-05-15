@@ -4,6 +4,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProductsModule } from './products/products.module';
 import { Product } from './products/entities/product.entity';
+import { WarehouseModule } from './warehouse/warehouse.module';
+import { Warehouse } from './warehouse/entities/warehouse.entity';
 
 @Module({
   imports: [
@@ -14,10 +16,11 @@ import { Product } from './products/entities/product.entity';
       username: 'postgres',
       password: 'postgres',
       database: 'product_db',
-      entities: [Product],
+      entities: [Product, Warehouse],
       synchronize: true, // Deshabilitamos la sincronización automática
     }),
     ProductsModule,
+    WarehouseModule,
   ],
   controllers: [AppController],
   providers: [AppService],
