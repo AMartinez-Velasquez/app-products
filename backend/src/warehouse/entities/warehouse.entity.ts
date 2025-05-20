@@ -1,4 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { OneToMany } from 'typeorm';
+import { ProductWarehouseDetail } from '../../product-warehouse-detail/entities/product-warehouse-detail.entity';
+
 
 @Entity()
 export class Warehouse {
@@ -19,4 +22,7 @@ export class Warehouse {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => ProductWarehouseDetail, detail => detail.warehouse)
+  details: ProductWarehouseDetail[];
 }

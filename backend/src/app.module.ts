@@ -6,6 +6,8 @@ import { ProductsModule } from './products/products.module';
 import { Product } from './products/entities/product.entity';
 import { WarehouseModule } from './warehouse/warehouse.module';
 import { Warehouse } from './warehouse/entities/warehouse.entity';
+import { ProductWarehouseDetail } from './product-warehouse-detail/entities/product-warehouse-detail.entity';
+import { ProductWarehouseDetailModule } from './product-warehouse-detail/product-warehouse-detail.module';
 
 @Module({
   imports: [
@@ -16,11 +18,12 @@ import { Warehouse } from './warehouse/entities/warehouse.entity';
       username: 'postgres',
       password: 'postgres',
       database: 'product_db',
-      entities: [Product, Warehouse],
+      entities: [Product, Warehouse, ProductWarehouseDetail],
       synchronize: true, // Deshabilitamos la sincronización automática
     }),
     ProductsModule,
     WarehouseModule,
+    ProductWarehouseDetailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
