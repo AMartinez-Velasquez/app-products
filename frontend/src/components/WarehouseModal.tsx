@@ -7,6 +7,7 @@ import {
   Grid,
   TextField,
   Button,
+  MenuItem,
 } from '@mui/material';
 import axios from 'axios';
 
@@ -17,6 +18,17 @@ interface Warehouse {
   capacity: number;
 }
 
+interface Product {
+  id: number;
+  name: string;
+}
+
+interface Detail {
+  id: number;
+  stock: number;
+  product: Product;
+  warehouse: Warehouse;
+}
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -31,13 +43,32 @@ const WarehouseModal: React.FC<Props> = ({ open, onClose, refresh, warehouse }) 
     capacity: 0,
   });
 
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [details, setDetails] = useState<Detail[]>([]);
+
   useEffect(() => {
     if (warehouse) {
       setFormData(warehouse);
+      fetchDetails(warehouse.id);
     } else {
       setFormData({ name: '', location: '', capacity: 0 });
+      setDetails([]);
     }
+    fetchProducts();
   }, [warehouse]);
+
+  const fetchProducts = async () => {
+    const res = await axios.get('http://localhost:3000/products');
+    setProducts(res.data);
+  };
+
+  const fetchDetails = async (warehouseId?: number) => {
+    if (!warehouseId) return;
+    const res = await axios.get('http://localhost:3000/product-warehouse-detail');
+    const filtered = res.data.filter((d: Detail) => d.warehouse.id === warehouseId);
+    setDetails(filtered);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -99,6 +130,23 @@ const WarehouseModal: React.FC<Props> = ({ open, onClose, refresh, warehouse }) 
                 required
               />
             </Grid>
+            <Grid item xs={12}>
+              <TextField
+                select
+                fullWidth
+                label="Asociar a un producto (informativo)"
+                value={selectedProductId ?? ''}
+                onChange={(e) => setSelectedProductId(Number(e.target.value))}
+              >
+                {products.map((p) => (
+                  <MenuItem key={p.id} value={p.id}>
+                    {p.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+
           </Grid>
         </DialogContent>
         <DialogActions>

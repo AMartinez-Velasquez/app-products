@@ -4,6 +4,8 @@ import ProductList from './components/ProductList';
 import ProductModal from './components/ProductModal';
 import WarehouseList from './components/WarehouseList';
 import WarehouseModal from './components/WarehouseModal';
+import DetalleProductosAlmacenList from './components/DetalleProductosAlmacenList';
+import DetalleProductosAlmacenModal from './components/DetalleProductosAlmacenModal';
 import axios from 'axios';
 
 interface Product {
@@ -16,6 +18,15 @@ interface Product {
     updatedAt: string;
 }
 
+interface Warehouse {
+    id: number;
+    name: string;
+    location: string;
+    capacity: number;
+    createdAt: string;
+    updatedAt: string;
+  }
+
 function App() {
     const [openForm, setOpenForm] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
@@ -23,8 +34,13 @@ function App() {
     const [products, setProducts] = useState<Product[]>([]);
 
     const [warehouses, setWarehouses] = useState([]);
-    const [selectedWarehouse, setSelectedWarehouse] = useState(null);
+    const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
     const [openWarehouseModal, setOpenWarehouseModal] = useState(false);
+
+
+    const [openDetalleModal, setOpenDetalleModal] = useState(false);
+    const [refreshDetalles, setRefreshDetalles] = useState(false);
+
 
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -134,6 +150,19 @@ function App() {
                 </Grid>
             </Grid>
 
+            <Box sx={{ mt: 6 }}>
+                <Typography variant="h6">Detalle Productos - Almacenes</Typography>
+                    <Button
+                        variant="outlined"
+                        color="secondary"
+                        onClick={() => setOpenDetalleModal(true)}
+                        sx={{ mb: 2 }}
+                    >
+                    Agregar Relación
+                    </Button>
+            <DetalleProductosAlmacenList key={refreshDetalles ? '1' : '0'} />
+            </Box>
+
                 <ProductModal
                     open={openForm}
                     onClose={handleCloseForm}
@@ -151,6 +180,15 @@ function App() {
                     refresh={fetchWarehouses}
                     warehouse={selectedWarehouse}
                 />
+
+                <DetalleProductosAlmacenModal
+                    open={openDetalleModal}
+                    onClose={() => setOpenDetalleModal(false)}
+                    refresh={() => setRefreshDetalles((prev) => !prev)}
+                    refreshWarehouses={fetchWarehouses}
+                    refreshProduct={fetchProducts}
+                />
+
             </Box>
             <Snackbar
                 open={snackbarOpen}
