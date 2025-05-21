@@ -29,7 +29,8 @@ interface Warehouse {
 
 function App() {
     const [openForm, setOpenForm] = useState(false);
-    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [refresh, setRefresh] = useState(false);
     const [refreshList, setRefreshList] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
 
@@ -86,7 +87,7 @@ function App() {
         }
     };
 
-    const handleDeleteWarehouse = async (id) => {
+    const handleDeleteWarehouse = async (id:any) => {
         try {
           await axios.delete(`http://localhost:3000/warehouses/${id}`);
           fetchWarehouses();
