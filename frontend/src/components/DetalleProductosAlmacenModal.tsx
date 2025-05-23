@@ -8,12 +8,14 @@ import {
   TextField,
   Button,
   MenuItem,
+  Tooltip,
 } from '@mui/material';
 import axios from 'axios';
 
 interface Product {
   id: number;
   name: string;
+  stock?: number;
 }
 
 interface Warehouse {
@@ -35,6 +37,7 @@ const DetalleProductosAlmacenModal: React.FC<Props> = ({ open, onClose, refresh,
   const [productId, setProductId] = useState<number>(0);
   const [warehouseId, setWarehouseId] = useState<number>(0);
   const [stock, setStock] = useState<number>(0);
+  const [productStock, setProductStock] = useState<number>(0);
 
   const fetchOptions = async () => {
     const [productsRes, warehousesRes] = await Promise.all([
@@ -43,6 +46,12 @@ const DetalleProductosAlmacenModal: React.FC<Props> = ({ open, onClose, refresh,
     ]);
     setProducts(productsRes.data);
     setWarehouses(warehousesRes.data);
+  };
+
+  const handleProductChange = async (id: number) => {
+    setProductId(id);
+    const res = await axios.get(`http://localhost:3000/products/${id}`);
+    setProductStock(res.data.stock);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,7 +83,7 @@ const DetalleProductosAlmacenModal: React.FC<Props> = ({ open, onClose, refresh,
                 fullWidth
                 label="Producto"
                 value={productId}
-                onChange={(e) => setProductId(Number(e.target.value))}
+                onChange={(e) => handleProductChange(Number(e.target.value))}
                 required
               >
                 {products.map((p) => (
@@ -101,14 +110,22 @@ const DetalleProductosAlmacenModal: React.FC<Props> = ({ open, onClose, refresh,
               </TextField>
             </Grid>
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                type="number"
-                label="Stock"
-                value={stock}
-                onChange={(e) => setStock(Number(e.target.value))}
-                required
-              />
+              <Tooltip
+                title={stock > productStock ? 'No hay stock suficiente del producto seleccionado' : ''}
+                placement="top"
+                arrow
+                open={stock > productStock && productId !== 0}
+              >
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Stock"
+                  value={stock}
+                  onChange={(e) => setStock(Number(e.target.value))}
+                  required
+                  error={stock > productStock}
+                />
+              </Tooltip>
             </Grid>
           </Grid>
         </DialogContent>
