@@ -136,6 +136,7 @@ const ProductModal: React.FC<Props> = ({ open, onClose, refresh, product }) => {
                 value={formData.price}
                 onChange={handleChange}
                 required
+                inputProps={{ min: 0 }}
               />
             </Grid>
             <Grid item xs={6}>
@@ -147,6 +148,7 @@ const ProductModal: React.FC<Props> = ({ open, onClose, refresh, product }) => {
                 value={formData.stock}
                 onChange={handleChange}
                 required
+                inputProps={{ min: 0, max: 100 }}
               />
             </Grid>
             <Grid item xs={12}>

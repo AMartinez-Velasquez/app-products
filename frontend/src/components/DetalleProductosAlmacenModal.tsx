@@ -54,8 +54,19 @@ const DetalleProductosAlmacenModal: React.FC<Props> = ({ open, onClose, refresh,
     setProductStock(res.data.stock);
   };
 
+  const handleStockChange = (value: number) => {
+    if (value < 0) {
+      setStock(0);
+    } else if (value > 100) {
+      setStock(100);
+    } else {
+      setStock(value);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (stock < 0) return;
     await axios.post('http://localhost:3000/product-warehouse-detail', {
       product: { id: productId },
       warehouse: { id: warehouseId },
@@ -70,6 +81,8 @@ const DetalleProductosAlmacenModal: React.FC<Props> = ({ open, onClose, refresh,
   useEffect(() => {
     if (open) fetchOptions();
   }, [open]);
+
+  const isStockInvalid = stock > productStock || stock < 0;
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -110,20 +123,27 @@ const DetalleProductosAlmacenModal: React.FC<Props> = ({ open, onClose, refresh,
               </TextField>
             </Grid>
             <Grid item xs={12}>
-              <Tooltip
-                title={stock > productStock ? 'No hay stock suficiente del producto seleccionado' : ''}
+             <Tooltip
+                title={
+                  stock < 0
+                    ? 'No se puede ingresar un valor negativo'
+                    : stock > productStock
+                    ? 'No hay stock suficiente del producto seleccionado'
+                    : ''
+                }
                 placement="top"
                 arrow
-                open={stock > productStock && productId !== 0}
+                open={isStockInvalid && productId !== 0}
               >
                 <TextField
                   fullWidth
                   type="number"
                   label="Stock"
                   value={stock}
-                  onChange={(e) => setStock(Number(e.target.value))}
+                  onChange={(e) => handleStockChange(Number(e.target.value))}
                   required
                   error={stock > productStock}
+                  inputProps={{ min: 0, max: 100}}
                 />
               </Tooltip>
             </Grid>
@@ -131,7 +151,7 @@ const DetalleProductosAlmacenModal: React.FC<Props> = ({ open, onClose, refresh,
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button type="submit" variant="contained">
+          <Button type="submit" variant="contained" disabled={isStockInvalid}>
             Guardar
           </Button>
         </DialogActions>

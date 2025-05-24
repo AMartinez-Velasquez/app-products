@@ -128,6 +128,7 @@ const WarehouseModal: React.FC<Props> = ({ open, onClose, refresh, warehouse }) 
                 value={formData.capacity}
                 onChange={handleChange}
                 required
+                inputProps={{ min: 0 }}
               />
             </Grid>
             <Grid item xs={12}>
