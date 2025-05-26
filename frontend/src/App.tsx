@@ -1,208 +1,71 @@
 import { useEffect, useState } from 'react';
-import { Container, Typography, Button, Box, Snackbar, Alert, Grid,  } from '@mui/material';
-import ProductList from './components/ProductList';
-import ProductModal from './components/ProductModal';
-import WarehouseList from './components/WarehouseList';
-import WarehouseModal from './components/WarehouseModal';
-import DetalleProductosAlmacenList from './components/DetalleProductosAlmacenList';
-import DetalleProductosAlmacenModal from './components/DetalleProductosAlmacenModal';
-import axios from 'axios';
-
-interface Product {
-    id: number;
-    name: string;
-    description: string;
-    price: number;
-    stock: number;
-    createdAt: string;
-    updatedAt: string;
-}
-
-interface Warehouse {
-    id: number;
-    name: string;
-    location: string;
-    capacity: number;
-    createdAt: string;
-    updatedAt: string;
-  }
+import {
+  Box,
+  Typography,
+  List,
+  ListItemButton,
+  Container,
+  Snackbar,
+  Alert
+} from '@mui/material';
+import ProductSection from './components/ProductSection';
+import WarehouseSection from './components/WarehouseSection';
+import DetailSection from './components/DetailSection';
 
 function App() {
-    const [openForm, setOpenForm] = useState(false);
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-    const [refresh, setRefresh] = useState(false);
-    const [refreshList, setRefreshList] = useState(false);
-    const [products, setProducts] = useState<Product[]>([]);
+  const [activeView, setActiveView] = useState<'productos' | 'almacen' | 'detalle'>('productos');
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
-    const [warehouses, setWarehouses] = useState([]);
-    const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
-    const [openWarehouseModal, setOpenWarehouseModal] = useState(false);
+  const renderContent = () => {
+    switch (activeView) {
+      case 'productos':
+        return <ProductSection setSnackbarMessage={setSnackbarMessage} setSnackbarOpen={setSnackbarOpen} />;
+      case 'almacen':
+        return <WarehouseSection setSnackbarMessage={setSnackbarMessage} setSnackbarOpen={setSnackbarOpen} />;
+      case 'detalle':
+        return <DetailSection />;
+      default:
+        return null;
+    }
+  };
 
+  return (
+    <Box sx={{ display: 'flex', height: '100vh' }}>
+      {/* Sidebar */}
+      <Box sx={{ width: '220px', bgcolor: '#f5f5f5', p: 2, borderRight: '1px solid #ccc' }}>
+        <Typography variant="h6" gutterBottom>
+          Navegación
+        </Typography>
+        <List>
+          <ListItemButton onClick={() => setActiveView('productos')}>PRODUCTOS</ListItemButton>
+          <ListItemButton onClick={() => setActiveView('almacen')}>ALMACÉN</ListItemButton>
+          <ListItemButton onClick={() => setActiveView('detalle')}>DETALLE PRODUCTO</ListItemButton>
+        </List>
+      </Box>
 
-    const [openDetalleModal, setOpenDetalleModal] = useState(false);
-    const [refreshDetalles, setRefreshDetalles] = useState(false);
-
-
-    const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState('');
-
-    const handleOpenForm = (product?: Product | null) => {
-        setSelectedProduct(product || null);
-        setOpenForm(true);
-    };
-
-    const handleCloseForm = () => {
-        setOpenForm(false);
-        setSelectedProduct(null);
-    };
-
-    const handleSave = () => {
-        setRefreshList(prev => !prev);
-    };
-
-    const fetchProducts = async () => {
-        try {
-            const response = await axios.get('http://localhost:3000/products');
-            setProducts(response.data);
-        } catch (error) {
-            console.error('Error fetching products:', error);
-        }
-    };
-
-    const fetchWarehouses = async () => {
-        try {
-          const res = await axios.get('http://localhost:3000/warehouses');
-          setWarehouses(res.data);
-        } catch (error) {
-          console.error('Error fetching warehouses:', error);
-        }
-      };
-
-    const handleDelete = async (id: number) => {
-        try {
-            await axios.delete(`http://localhost:3000/products/${id}`);
-            fetchProducts();
-        } catch (error) {
-            console.error('Error deleting product:', error);
-        }
-    };
-
-    const handleDeleteWarehouse = async (id:any) => {
-        try {
-          await axios.delete(`http://localhost:3000/warehouses/${id}`);
-          fetchWarehouses();
-          setSnackbarMessage('Almacén eliminado');
-          setSnackbarOpen(true);
-        } catch (error) {
-          console.error('Error deleting warehouse:', error);
-        }
-      };
-
-    useEffect(() => {
-        fetchProducts();
-        fetchWarehouses();
-    }, [refreshList]);
-
-    return (
+      {/* Main Content */}
+      <Box sx={{ flexGrow: 1, p: 4 }}>
+        <Typography variant="h4" mb={3} textAlign="center">
+          {activeView.toUpperCase()}
+        </Typography>
         <Container maxWidth="xl">
-            <Box sx={{ textAlign: 'center', my: 4 }}>
-                <Typography variant="h4" component="h1" gutterBottom>
-                    Sistema de Inventario
-                </Typography>
-                <Grid container spacing={12}>
-                    <Grid item xs={12} md={6}>
-                        <Typography variant="h6">Productos</Typography>
-                            <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={() => handleOpenForm()}
-                            sx={{ mb: 2 }}
-                            >
-                            Agregar Producto
-                            </Button>
-                            <ProductList
-                            products={products}
-                            onEdit={handleOpenForm}
-                            onDelete={handleDelete}
-                            />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                    <Typography variant="h6">Almacenes</Typography>
-                    <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => {
-                        setSelectedWarehouse(null);
-                        setOpenWarehouseModal(true);
-                    }}
-                    sx={{ mb: 2 }}
-                    >
-                    Agregar Almacén
-                    </Button>
-                    <WarehouseList
-                    warehouses={warehouses}
-                    onEdit={(warehouse) => {
-                        setSelectedWarehouse(warehouse);
-                        setOpenWarehouseModal(true);
-                    }}
-                    onDelete={handleDeleteWarehouse}
-                    />
-                </Grid>
-            </Grid>
-
-            <Box sx={{ mt: 6 }}>
-                <Typography variant="h6">Detalle Productos - Almacenes</Typography>
-                    <Button
-                        variant="outlined"
-                        color="secondary"
-                        onClick={() => setOpenDetalleModal(true)}
-                        sx={{ mb: 2 }}
-                    >
-                    Agregar Relación
-                    </Button>
-            <DetalleProductosAlmacenList key={refreshDetalles ? '1' : '0'} />
-            </Box>
-
-                <ProductModal
-                    open={openForm}
-                    onClose={handleCloseForm}
-                   // onSave={handleSave}
-                    product={selectedProduct}
-                    refresh={fetchProducts}
-                />
-
-                <WarehouseModal
-                    open={openWarehouseModal}
-                    onClose={() => {
-                    setOpenWarehouseModal(false);
-                    setSelectedWarehouse(null);
-                    }}
-                    refresh={fetchWarehouses}
-                    warehouse={selectedWarehouse}
-                />
-
-                <DetalleProductosAlmacenModal
-                    open={openDetalleModal}
-                    onClose={() => setOpenDetalleModal(false)}
-                    refresh={() => setRefreshDetalles((prev) => !prev)}
-                    refreshWarehouses={fetchWarehouses}
-                    refreshProduct={fetchProducts}
-                />
-
-            </Box>
-            <Snackbar
-                open={snackbarOpen}
-                autoHideDuration={3000}
-                onClose={() => setSnackbarOpen(false)}
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-            >
-                <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%' }}>
-                {snackbarMessage}
-                </Alert>
-            </Snackbar>
+          {renderContent()}
         </Container>
-    );
+      </Box>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </Box>
+  );
 }
 
-export default App; 
+export default App;
