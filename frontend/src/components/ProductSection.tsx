@@ -1,14 +1,18 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Typography, Button, Box } from '@mui/material';
-import ProductList from './ProductList';
+import ProductList, { Product } from './ProductList';
 import ProductModal from './ProductModal';
 import axios from 'axios';
 
+interface Props {
+  setSnackbarOpen: (open: boolean) => void;
+  setSnackbarMessage: (message: string) => void;
+}
 
-const ProductSection = ({ setSnackbarOpen, setSnackbarMessage }) => {
+const ProductSection: React.FC<Props> = ({ setSnackbarOpen, setSnackbarMessage }) => {
   const [products, setProducts] = useState([]);
   const [openForm, setOpenForm] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const fetchProducts = async () => {
     try {
@@ -42,7 +46,7 @@ const ProductSection = ({ setSnackbarOpen, setSnackbarMessage }) => {
       <Button variant="contained" color="primary" onClick={() => setOpenForm(true)} sx={{ mb: 2 }}>
         Agregar Producto
       </Button>
-      <ProductList products={products} onEdit={setSelectedProduct} onDelete={handleDelete} />
+      <ProductList products={products} onEdit={(product: Product) => setSelectedProduct(product)} onDelete={handleDelete} />
       <ProductModal
         open={openForm || !!selectedProduct}
         onClose={() => {

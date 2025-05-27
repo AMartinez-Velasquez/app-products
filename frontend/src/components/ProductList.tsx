@@ -14,7 +14,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
 
-interface Product {
+export interface Product {
     id: number;
     name: string;
     description: string;
