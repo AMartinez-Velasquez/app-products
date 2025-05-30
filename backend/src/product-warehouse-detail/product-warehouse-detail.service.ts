@@ -24,68 +24,108 @@ export class ProductWarehouseDetailService {
   }
 
   async create(data: Partial<ProductWarehouseDetail>): Promise<ProductWarehouseDetail> {
-    const detail = this.detailRepo.create(data);
+  if (!data.warehouse?.id || !data.product?.id || !data.stock) {
+    throw new BadRequestException('warehouse.id, product.id y stock son obligatorios');
+  }
 
-    if (!data.warehouse?.id || !data.product?.id || !data.stock) {
-      throw new BadRequestException('warehouse.id, product.id y stock son obligatorios');
-    }
+  const warehouseRepo = this.dataSource.getRepository(Warehouse);
+  const productRepo = this.dataSource.getRepository(Product);
+
+  const warehouse = await warehouseRepo.findOneBy({ id: data.warehouse.id });
+  const product = await productRepo.findOneBy({ id: data.product.id });
+
+  if (!warehouse) throw new NotFoundException('Almacén no encontrado');
+  if (!product) throw new NotFoundException('Producto no encontrado');
+
+  if (warehouse.capacity < data.stock) {
+    throw new BadRequestException('No hay suficiente capacidad disponible en el almacén');
+  }
+  if (product.stock < data.stock) {
+    throw new BadRequestException('No hay suficiente stock disponible del producto');
+  }
+
+  let detail: ProductWarehouseDetail;
+
+  const existingDetail = await this.detailRepo.findOne({
+    where: {
+      product: { id: data.product.id },
+      warehouse: { id: data.warehouse.id },
+    },
+    relations: ['product', 'warehouse'],
+  });
+
+  if (existingDetail) {
+    existingDetail.stock += data.stock;
+    detail = existingDetail;
+  } else {
+    detail = this.detailRepo.create(data);
+  }
+
+  await this.detailRepo.save(detail);
+
+  warehouse.capacity -= data.stock;
+  product.stock -= data.stock;
+
+  await warehouseRepo.save(warehouse);
+  await productRepo.save(product);
+
+  return detail;
+}
+
+
+
+  async update(id: number, data: Partial<ProductWarehouseDetail>): Promise<ProductWarehouseDetail> {
+    const detail = await this.findOne(id);
 
     const warehouseRepo = this.dataSource.getRepository(Warehouse);
     const productRepo = this.dataSource.getRepository(Product);
 
-    const warehouse = await warehouseRepo.findOneBy({ id: data.warehouse.id });
-    const product = await productRepo.findOneBy({ id: data.product.id });
+    const warehouse = await warehouseRepo.findOneBy({ id: detail.warehouse.id });
+    const product = await productRepo.findOneBy({ id: detail.product.id });
 
-    if (!warehouse) throw new NotFoundException('Almacén no encontrado');
-    if (!product) throw new NotFoundException('Producto no encontrado');
-
-    if (warehouse.capacity < data.stock) {
-      throw new BadRequestException('No hay suficiente capacidad disponible en el almacén');
-    }
-    if (product.stock < data.stock) {
-      throw new BadRequestException('No hay suficiente stock disponible del producto');
+    if (!warehouse || !product) {
+      throw new NotFoundException('Producto o almacén no encontrado');
     }
 
-    // Actualizar capacidad del almacén
-    warehouse.capacity -= data.stock;
-    await warehouseRepo.save(warehouse);
+    // Restaurar valores previos
+    warehouse.capacity += detail.stock;
+    product.stock += detail.stock;
 
-    // Actualizar stock del producto
-    product.stock -= data.stock;
-    await productRepo.save(product);
+    if (data.stock !== undefined) {
+      if (warehouse.capacity < data.stock) {
+        throw new BadRequestException('No hay suficiente capacidad disponible en el almacén');
+      }
+      if (product.stock < data.stock) {
+        throw new BadRequestException('No hay suficiente stock disponible del producto');
+      }
 
-    return this.detailRepo.save(detail);
-  }
+      warehouse.capacity -= data.stock;
+      product.stock -= data.stock;
+    }
 
-  async update(id: number, data: Partial<ProductWarehouseDetail>): Promise<ProductWarehouseDetail> {
-    const detail = await this.findOne(id);
     this.detailRepo.merge(detail, data);
+    await warehouseRepo.save(warehouse);
+    await productRepo.save(product);
     return this.detailRepo.save(detail);
   }
 
   async delete(id: number): Promise<void> {
     const detail = await this.findOne(id);
 
+    const warehouseRepo = this.dataSource.getRepository(Warehouse);
     const productRepo = this.dataSource.getRepository(Product);
 
-    // Restaurar capacidad del almacén
-    if (detail.warehouse?.id && detail.stock) {
-      const warehouseRepo = this.dataSource.getRepository(Warehouse);
-      const warehouse = await warehouseRepo.findOneBy({ id: detail.warehouse.id });
+    const warehouse = await warehouseRepo.findOneBy({ id: detail.warehouse.id });
+    const product = await productRepo.findOneBy({ id: detail.product.id });
 
-      if (warehouse) {
-        warehouse.capacity += detail.stock;
-        await warehouseRepo.save(warehouse);
-      }
+    if (warehouse) {
+      warehouse.capacity += detail.stock;
+      await warehouseRepo.save(warehouse);
     }
-    if (detail.product?.id && detail.stock) {
-      const productRepo = this.dataSource.getRepository(Product)
-      const product = await productRepo.findOneBy({ id: detail.product.id });
 
-      if (product) {
-        product.stock += detail.stock;
-        await productRepo.save(product);
-      }
+    if (product) {
+      product.stock += detail.stock;
+      await productRepo.save(product);
     }
 
     await this.detailRepo.remove(detail);

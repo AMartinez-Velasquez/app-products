@@ -29,9 +29,22 @@ interface Props {
   refresh: () => void;
   refreshWarehouses: () => void;
   refreshProduct: () => void;
+  editingDetail?: {
+    id: number;
+    product: { id: number; name: string };
+    warehouse: { id: number; name: string };
+    stock: number;
+  } | null;
 }
 
-const DetalleProductosAlmacenModal: React.FC<Props> = ({ open, onClose, refresh, refreshWarehouses, refreshProduct }) => {
+const DetalleProductosAlmacenModal: React.FC<Props> = ({
+  open,
+  onClose,
+  refresh,
+  refreshWarehouses,
+  refreshProduct,
+  editingDetail,
+}) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [productId, setProductId] = useState<number>(0);
@@ -67,11 +80,21 @@ const DetalleProductosAlmacenModal: React.FC<Props> = ({ open, onClose, refresh,
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (stock < 0) return;
-    await axios.post('http://localhost:3000/product-warehouse-detail', {
-      product: { id: productId },
-      warehouse: { id: warehouseId },
-      stock,
-    });
+
+    if (editingDetail) {
+      await axios.put(`http://localhost:3000/product-warehouse-detail/${editingDetail.id}`, {
+        product: { id: productId },
+        warehouse: { id: warehouseId },
+        stock,
+      });
+    } else {
+      await axios.post('http://localhost:3000/product-warehouse-detail', {
+        product: { id: productId },
+        warehouse: { id: warehouseId },
+        stock,
+      });
+    }
+
     refresh();
     refreshWarehouses();
     refreshProduct();
@@ -82,11 +105,25 @@ const DetalleProductosAlmacenModal: React.FC<Props> = ({ open, onClose, refresh,
     if (open) fetchOptions();
   }, [open]);
 
+  useEffect(() => {
+    if (open && editingDetail) {
+      setProductId(editingDetail.product.id);
+      setWarehouseId(editingDetail.warehouse.id);
+      setStock(editingDetail.stock);
+    }
+    if (open && !editingDetail) {
+      setProductId(0);
+      setWarehouseId(0);
+      setStock(0);
+      setProductStock(0);
+    }
+  }, [open, editingDetail]);
+
   const isStockInvalid = stock > productStock || stock < 0;
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Agregar Detalle Producto/Almacén</DialogTitle>
+      <DialogTitle>{editingDetail ? 'Editar' : 'Agregar'} Detalle Producto/Almacén</DialogTitle>
       <form onSubmit={handleSubmit}>
         <DialogContent>
           <Grid container spacing={2}>
@@ -123,7 +160,7 @@ const DetalleProductosAlmacenModal: React.FC<Props> = ({ open, onClose, refresh,
               </TextField>
             </Grid>
             <Grid item xs={12}>
-             <Tooltip
+              <Tooltip
                 title={
                   stock < 0
                     ? 'No se puede ingresar un valor negativo'
@@ -143,7 +180,7 @@ const DetalleProductosAlmacenModal: React.FC<Props> = ({ open, onClose, refresh,
                   onChange={(e) => handleStockChange(Number(e.target.value))}
                   required
                   error={stock > productStock}
-                  inputProps={{ min: 0, max: 100}}
+                  inputProps={{ min: 0, max: 100 }}
                 />
               </Tooltip>
             </Grid>
